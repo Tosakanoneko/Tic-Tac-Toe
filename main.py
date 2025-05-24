@@ -6,7 +6,7 @@ from ai import *
 from comm import comm_agent
 import copy
 import threading
-from rotate import rotate_image
+from rotate import rotate_image, get_roi_frame
 
 if __name__ == "__main__":
     current_turn = 0
@@ -20,6 +20,7 @@ if __name__ == "__main__":
     white_lower, white_upper = get_white_settings()
     black_lower, black_upper = get_black_settings()
     roi_x, roi_y, roi_length = load_roi_settings()
+    map1, map2 = mono_correct()
     
     # 打开摄像头
     cap = cv2.VideoCapture(0)
@@ -33,23 +34,24 @@ if __name__ == "__main__":
     current_turn = AI_TURN
 
     agent = comm_agent()
-    # agent_thread = threading.Thread(target=agent.rcv)
-    # agent_thread.setDaemon(True)
-    # agent_thread.start()
+    agent_thread = threading.Thread(target=agent.rcv)
+    agent_thread.setDaemon(True)
+    agent_thread.start()
         
     while True:
         ret, frame = cap.read()
         if not ret:
             break
-        frame = frame[:, 80: 560]
+        frame = cv2.remap(frame, map1, map2, interpolation=cv2.INTER_LINEAR)
+        frame = get_roi_frame(roi_x, roi_y, roi_length, frame)
+
         frame = rotate_image(frame, agent.board_rotate_deg)
-        cb_mask = get_hsv_mask(frame, cb_lower, cb_upper)
-    
-        # 将 mask 转为 BGR 并调整大小与原图一致
-        mask_bgr = cv2.cvtColor(cb_mask, cv2.COLOR_GRAY2BGR)
     
         # 显示
-        cv2.imshow('frame', frame)
+        board_img = draw_virtual_board(now_board, frame.shape[0])
+        combined = np.hstack((frame, board_img))
+        cv2.putText(combined, "test", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2 )
+        cv2.imshow('frame', combined)
         key = cv2.waitKey(1) & 0xFF
         if key == 27:
             break
@@ -76,7 +78,7 @@ if __name__ == "__main__":
         if not legal:
             start_illegal_x, start_illegal_y, end_illegal_x, end_illegal_y = illegal_coords
             print(f"落子{start_illegal_x}, {start_illegal_y}不合法！请归位到{end_illegal_x}, {end_illegal_y}")
-            # agent.sned(2, start_illegal_x, start_illegal_y)
+            agent.send_xy(2, start_illegal_x, start_illegal_y)
             recover_op = True
             agent.start_detect = False #需要下位机告知恢复棋局完毕
             continue
@@ -109,7 +111,7 @@ if __name__ == "__main__":
             ai_x, ai_y = best_move(now_board, AI_chess)
             print("AI 落子：", ai_x, ai_y)
             case = 0 if AI_chess == "X" else 1
-            # agent.send(case, ai_x, ai_y)
+            agent.send_xy(case, ai_x, ai_y)
 
         fore_board = copy.deepcopy(now_board)
         agent.start_detect = False

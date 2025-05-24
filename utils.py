@@ -4,31 +4,23 @@ import json
 import os
 import argparse
 
-
+def load_calib_params(param_file='calib_camera.npz'):
+    param_file = 'calib_camera.npz'  # 你保存的标定结果文件名
+    with np.load(param_file) as data:
+        camera_matrix = data['K']
+        dist_coeffs = data['dist']
+    return camera_matrix, dist_coeffs
 
 def mono_correct():
-    # 相机内参
-    fx = 492.796460
-    fy = 490.909300
-    cx = 293.882125
-    cy = 234.739797
+    
+    # 图像尺寸
+    h, w = 480, 640
+    camera_matrix, dist_coeffs = load_calib_params()
 
-    # 畸变参数
-    k1 = 0.128403
-    k2 = -0.150055
-    p1 = -0.010989
-    p2 = 0.001802
-
-
-    # 相机矩阵
-    K = np.array([[fx,  0, cx],
-                  [ 0, fy, cy],
-                  [ 0,  0,  1]], dtype=np.float32)
-
-    # 畸变系数
-    D = np.array([k1, k2, p1, p2], dtype=np.float32)
-    new_K, _ = cv2.getOptimalNewCameraMatrix(K, D, (640, 480), 0)
-    map1, map2 = cv2.initUndistortRectifyMap(K, D, None, new_K, (640, 480), cv2.CV_32FC1)
+    # 计算去畸变映射（只需要一次）
+    new_camera_matrix, roi = cv2.getOptimalNewCameraMatrix(camera_matrix, dist_coeffs, (w, h), 1)
+    map1, map2 = cv2.initUndistortRectifyMap(
+        camera_matrix, dist_coeffs, None, new_camera_matrix, (w, h), cv2.CV_16SC2)
     return map1, map2
 
 def nothing(x):
@@ -171,7 +163,6 @@ if __name__ == "__main__":
             break
         # 获取矫正映射
         undistorted = cv2.remap(frame, map1, map2, interpolation=cv2.INTER_LINEAR)
-        frame = frame[:, 80: 560]
         
         if args.hsv:
             h_min, h_max, s_min, s_max, v_min, v_max = get_HsvBar_value()
@@ -198,7 +189,6 @@ if __name__ == "__main__":
                 'length': length
             }
             frame = draw_board(frame, x, y, length)
-            cv2.circle(frame, (240,240), 3, (0, 0, 255), -1)
             # 显示
             cv2.imshow('frame', frame)
     
