@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from rotate import rotate_image
 from utils import get_hsv_mask, get_cb_settings, get_white_settings, get_black_settings, load_roi_settings
 
 white_lower, white_upper = get_white_settings()
@@ -14,15 +15,15 @@ def get_cb_state(frame, roi_x, roi_y, roi_length):
             piece = frame[roi_y+x*roi_length//3:roi_y+x*roi_length//3+roi_length//3, roi_x+y*roi_length//3:roi_x+y*roi_length//3+roi_length//3]
             white_mask = get_hsv_mask(piece, white_lower, white_upper)
             white_pix = cv2.countNonZero(white_mask)
-            print(f"white_count: {white_pix}")
-            if white_pix > 600:
+            # print(f"white_count: {white_pix}")
+            if white_pix > 400:
                 board[x][y] = "O"
                 white_count += 1
                 continue
             black_mask = get_hsv_mask(piece, black_lower, black_upper)
             black_pix = cv2.countNonZero(black_mask)
-            print(f"black_count: {black_pix}")
-            if black_pix > 600:
+            # print(f"black_count: {black_pix}")
+            if black_pix > 400:
                 board[x][y] = "X"
                 black_count += 1
     return board, black_count, white_count
@@ -77,56 +78,60 @@ def draw_virtual_board(board, size):
                 cv2.circle(img, (cx, cy), radius, color_X, -1)
 
     return img
+    
 
 if __name__ == "__main__":
-    board = [
-        ["O", " ", " "],
-        ["O", "X", " "],
-        ["X", " ", " "]
-    ]
-    cv2.namedWindow('frame', cv2.WINDOW_NORMAL)
-    cv2.imshow("frame", draw_virtual_board(board))
-    # cv2.setWindowProperty('frame', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_NORMAL)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-    # # 加载已有 HSV 设置
-    # cb_lower, cb_upper = get_cb_settings()
-    # white_lower, white_upper = get_white_settings()
-    # black_lower, black_upper = get_black_settings()
-    # roi_x, roi_y, roi_length = load_roi_settings()
-    
-    # # 打开摄像头
-    # cap = cv2.VideoCapture(0)
-    
-    # # 创建用于显示画面和掩膜拼接的窗口
+    # board = [
+    #     ["O", " ", " "],
+    #     ["O", "X", " "],
+    #     ["X", " ", " "]
+    # ]
     # cv2.namedWindow('frame', cv2.WINDOW_NORMAL)
-    # cv2.setWindowProperty('frame', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_NORMAL)
-        
-    # while True:
-    #     ret, frame = cap.read()
-    #     if not ret:
-    #         break
-    #     frame = frame[:, 80: 560]
-    #     cb_mask = get_hsv_mask(frame, cb_lower, cb_upper)
-    #     white_mask = get_hsv_mask(frame, white_lower, white_upper)
-    #     black_mask = get_hsv_mask(frame, black_lower, black_upper)
-    #     cb_mask_all = cv2.bitwise_or(cb_mask[roi_y:roi_y+roi_length, roi_x:roi_x+roi_length], white_mask[roi_y:roi_y+roi_length, roi_x:roi_x+roi_length])
-    #     cb_mask_all = cv2.bitwise_or(cb_mask_all, black_mask[roi_y:roi_y+roi_length, roi_x:roi_x+roi_length])
-    #     board_mask = np.zeros(cb_mask.shape, dtype=np.uint8)
-    #     board_mask[roi_y:roi_y+roi_length, roi_x:roi_x+roi_length] = cb_mask_all
-    
-    #     # 将 mask 转为 BGR 并调整大小与原图一致
-    #     mask_bgr = cv2.cvtColor(board_mask, cv2.COLOR_GRAY2BGR)
-    
-    #     # 显示
-    #     cv2.imshow('frame', mask_bgr)
-    
-    #     key = cv2.waitKey(1) & 0xFF
-    #     if key == 27:
-    #         break
-    #     elif key == ord('s'):
-    #         now_board, _, _ = get_cb_state(frame, roi_x, roi_y, roi_length)
-    #         print_board(now_board)
-        
-    # cap.release()
+    # cv2.imshow("frame", draw_virtual_board(board))
+    # # cv2.setWindowProperty('frame', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_NORMAL)
+    # cv2.waitKey(0)
     # cv2.destroyAllWindows()
+    # 加载已有 HSV 设置
+    cb_lower, cb_upper = get_cb_settings()
+    white_lower, white_upper = get_white_settings()
+    black_lower, black_upper = get_black_settings()
+    roi_x, roi_y, roi_length = load_roi_settings()
+    
+    # 打开摄像头
+    cap = cv2.VideoCapture(0)
+    
+    # 创建用于显示画面和掩膜拼接的窗口
+    cv2.namedWindow('frame', cv2.WINDOW_NORMAL)
+    cv2.setWindowProperty('frame', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_NORMAL)
+        
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+        # frame = frame[:, 80: 560]
+        # cb_mask = get_hsv_mask(frame, cb_lower, cb_upper)
+        # white_mask = get_hsv_mask(frame, white_lower, white_upper)
+        # black_mask = get_hsv_mask(frame, black_lower, black_upper)
+        # cb_mask_all = cv2.bitwise_or(cb_mask[roi_y:roi_y+roi_length, roi_x:roi_x+roi_length], white_mask[roi_y:roi_y+roi_length, roi_x:roi_x+roi_length])
+        # cb_mask_all = cv2.bitwise_or(cb_mask_all, black_mask[roi_y:roi_y+roi_length, roi_x:roi_x+roi_length])
+        # board_mask = np.zeros(cb_mask.shape, dtype=np.uint8)
+        # board_mask[roi_y:roi_y+roi_length, roi_x:roi_x+roi_length] = cb_mask_all
+    
+        # # 将 mask 转为 BGR 并调整大小与原图一致
+        # mask_bgr = cv2.cvtColor(board_mask, cv2.COLOR_GRAY2BGR)
+    
+        # 显示
+        frame = cv2.rotate(frame, cv2.ROTATE_180)
+        frame = rotate_image(frame, 0.0)
+        ori_frame = frame.copy()
+        cv2.imshow('frame', frame)
+    
+        key = cv2.waitKey(1) & 0xFF
+        if key == 27:
+            break
+        elif key == ord('s'):
+            now_board, _, _ = get_cb_state(ori_frame, roi_x, roi_y, roi_length)
+            print_board(now_board)
+        
+    cap.release()
+    cv2.destroyAllWindows()

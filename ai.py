@@ -25,33 +25,34 @@ def get_available_moves(board):
 
 def minimax(board, depth, is_maximizing, player):
     """
-    player: 本次搜索中作为“最大化”一方的棋子（"X" 或 "O"）
-    opponent: 对手棋子
-    返回值：对 player 来说的评估分数（胜1，负-1，平局0）
+    修改后的 minimax：考虑 depth，以便 AI 尽快获胜或拖延失败
+    player：此次搜索中作为最大化一方的棋子 ("X" 或 "O")
     """
     opponent = "O" if player == "X" else "X"
 
     if is_winner(board, player):
-        return 1
+        # 赢了：分数为 10 - depth（depth 越小，表示越快获胜，分数越高）
+        return 10 - depth
     if is_winner(board, opponent):
-        return -1
+        # 输了：分数为 depth - 10（depth 越小，表示越快被对方赢，分数越低）
+        return depth - 10
     if is_full(board):
         return 0
 
     if is_maximizing:
         best_score = -math.inf
-        for i, j in get_available_moves(board):
-            board[i][j] = player
+        for r, c in get_available_moves(board):
+            board[r][c] = player
             score = minimax(board, depth + 1, False, player)
-            board[i][j] = " "
+            board[r][c] = " "
             best_score = max(best_score, score)
         return best_score
     else:
         best_score = math.inf
-        for i, j in get_available_moves(board):
-            board[i][j] = opponent
+        for r, c in get_available_moves(board):
+            board[r][c] = opponent
             score = minimax(board, depth + 1, True, player)
-            board[i][j] = " "
+            board[r][c] = " "
             best_score = min(best_score, score)
         return best_score
 
@@ -83,7 +84,7 @@ def legal_judge(now_board, fore_board):
                 if fore_board[row][col] != " " and now_board[row][col] == " ":
                     legal = False
                     end_illegal_x, end_illegal_y = col, row
-                    break
+                    continue
     return legal, (start_illegal_x, start_illegal_y, end_illegal_x, end_illegal_y)
 
 def main():

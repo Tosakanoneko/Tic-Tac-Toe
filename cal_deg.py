@@ -1,17 +1,14 @@
 import math
 
 #单位 mm
-l1 = 97 #机械臂第一节
-l2 = 90 #机械臂第二节
-d0 = 95#机械臂距离棋盘中心的距离
-dx = 13
+l1 = 100 #机械臂第一节 97
+l2 = 100 #机械臂第二节
+d0 = 120#机械臂距离棋盘中心的距离 #104
+dx = -5
 d1 = 30 #棋盘每格宽
 d2 = 2  #棋盘线宽
 
 def cal_degree_ver1(tar_id, rotate_angle):
-    #旋转矩阵
-    R = [[math.cos(rotate_angle), -math.sin(rotate_angle)],
-         [math.sin(rotate_angle),  math.cos(rotate_angle)]]
     #初始化9个中心点
     target_point_list = [[], []]
     for i in range(9):
