@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import cv2
 import numpy as np
 import time
@@ -8,6 +9,7 @@ from comm import comm_agent
 import copy
 import threading
 from rotate import rotate_image
+os.chdir('/home/tosaka/Desktop/third/')
 
 if __name__ == "__main__":
     current_turn = 0
@@ -27,10 +29,12 @@ if __name__ == "__main__":
     
     # 打开摄像头
     cap = cv2.VideoCapture(0)
+    time.sleep(3) #等待系统图形界面
     
     # 创建用于显示画面和掩膜拼接的窗口
     cv2.namedWindow('frame', cv2.WINDOW_NORMAL)
-    cv2.setWindowProperty('frame', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_NORMAL)
+    cv2.moveWindow('frame', int((720 - 640) / 2), int((280 - 240) / 2))
+
     # cv2.namedWindow('ori_frame', cv2.WINDOW_NORMAL)
     # cv2.setWindowProperty('ori_frame', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_NORMAL)
 
@@ -64,6 +68,7 @@ if __name__ == "__main__":
         board_img = draw_virtual_board(now_board, frame.shape[0])
         combined = np.hstack((frame, board_img))
         # cv2.putText(combined, "test", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2 )
+        cv2.setWindowProperty('frame', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
         cv2.imshow('frame', combined)
         # cv2.imshow('ori_frame', ori_frame)
         key = cv2.waitKey(1) & 0xFF
@@ -88,8 +93,7 @@ if __name__ == "__main__":
         now_board_tmp, black_count, white_count = get_cb_state(ori_frame, new_x, new_y, roi_length)
         print_board(now_board_tmp)
         now_board_list.append(now_board_tmp)
-        if len(now_board_list) == 5:
-            # print("33333")
+        if len(now_board_list) == 3:
             first = now_board_list[0]
             if all(first == board for board in now_board_list):
                 now_board = copy.deepcopy(first)

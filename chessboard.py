@@ -3,9 +3,6 @@ import numpy as np
 from rotate import rotate_image
 from utils import get_hsv_mask, get_cb_settings, get_white_settings, get_black_settings, load_roi_settings
 
-white_lower, white_upper = get_white_settings()
-black_lower, black_upper = get_black_settings()
-
 def get_cb_state(frame, roi_x, roi_y, roi_length):
     """获取棋盘状态"""
     black_count, white_count = 0, 0
