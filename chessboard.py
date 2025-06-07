@@ -13,6 +13,7 @@ def get_cb_state(frame, roi_x, roi_y, roi_length):
     for x in range(3):
         for y in range(3):
             piece = frame[roi_y+x*roi_length//3:roi_y+x*roi_length//3+roi_length//3, roi_x+y*roi_length//3:roi_x+y*roi_length//3+roi_length//3]
+            cv2.imwrite(f"./tmp/{x}{y}.jpg", piece)
             white_mask = get_hsv_mask(piece, white_lower, white_upper)
             white_pix = cv2.countNonZero(white_mask)
             # print(f"white_count: {white_pix}")

@@ -124,42 +124,6 @@ def get_roi_frame(x, y, length, frame):
     return frame[roi_center[1] - min_length:roi_center[1] + min_length,
                  roi_center[0] - min_length:roi_center[0] + min_length]
 
-# def crop_max_square(frame, cx, cy):
-#     """
-#     以 (cx, cy) 为中心，从 frame 中裁剪一个可以容纳的最大正方形，返回裁剪后的子图。
-
-#     参数：
-#       - frame: 原始图像，shape=(480, 640, ...) 或类似。
-#       - cx, cy: 整数，表示“中心点”在原图中的坐标 (x 方向索引, y 方向索引)。
-    
-#     返回：
-#       - roi: 裁剪出的最大正方形区域 (大小为 2r×2r)，dtype 与 frame 相同。
-#     """
-
-#     H, W = frame.shape[:2]
-    
-#     # 计算中心点到四边的距离
-#     d_left   = cx
-#     d_right  = W - cx
-#     d_top    = cy
-#     d_bottom = H - cy
-
-#     # 取最小值作为正方形的“半边长”
-#     r = min(d_left, d_right, d_top, d_bottom)
-
-#     # 如果希望 r 是整数，或者强制取整：
-#     r = int(r)
-
-#     # 计算裁剪框的起止坐标
-#     x1 = cx - r
-#     x2 = cx + r
-#     y1 = cy - r
-#     y2 = cy + r
-
-#     # 切出子图（numpy 切片时下限含，上限不含）
-#     roi = frame[y1:y2, x1:x2]
-#     return roi
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-hsv', type=str, help='HSV settings file')
@@ -222,7 +186,7 @@ if __name__ == "__main__":
             mask_bgr = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
             # 拼接
             combined = np.hstack((frame, mask_bgr))
-            cv2.setWindowProperty()
+            cv2.setWindowProperty('frame', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_NORMAL)
             # 显示
             cv2.imshow('frame', combined)
         elif args.roi:
@@ -233,17 +197,13 @@ if __name__ == "__main__":
                 'x': x, 'y': y,
                 'length': length
             }
-            # 2) 计算裁剪后尺寸
             hc, wc = cropped.shape[:2]
             
-            # 3) 计算要绘制的矩形的相对位置（左上角）
             new_x = (wc - length) // 2
             new_y = (hc - length) // 2
             
-            # 4) 在 cropped 上画“边长为 length 的棋盘”
             frame = draw_board(cropped, new_x, new_y, length)
             
-            # 5) 如果想画中心小圆点，也用 (wc//2, hc//2)
             frame = cv2.circle(frame, (wc//2, hc//2), 3, (0,0,255), -1)
             # frame = cv2.circle(frame, (frame.shape[1]//2, frame.shape[0]//2), 3, (0,0,255), -1)
             # frame = draw_board(frame, x, y, length)

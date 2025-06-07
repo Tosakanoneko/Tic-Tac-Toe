@@ -24,10 +24,6 @@ def get_available_moves(board):
     return [(i, j) for i in range(3) for j in range(3) if board[i][j] == " "]
 
 def minimax(board, depth, is_maximizing, player):
-    """
-    修改后的 minimax：考虑 depth，以便 AI 尽快获胜或拖延失败
-    player：此次搜索中作为最大化一方的棋子 ("X" 或 "O")
-    """
     opponent = "O" if player == "X" else "X"
 
     if is_winner(board, player):

@@ -31,8 +31,8 @@ if __name__ == "__main__":
     # 创建用于显示画面和掩膜拼接的窗口
     cv2.namedWindow('frame', cv2.WINDOW_NORMAL)
     cv2.setWindowProperty('frame', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_NORMAL)
-    cv2.namedWindow('ori_frame', cv2.WINDOW_NORMAL)
-    cv2.setWindowProperty('ori_frame', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_NORMAL)
+    # cv2.namedWindow('ori_frame', cv2.WINDOW_NORMAL)
+    # cv2.setWindowProperty('ori_frame', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_NORMAL)
 
     now_board = [[" "]*3 for _ in range(3)]
     now_board_list = []
@@ -88,7 +88,7 @@ if __name__ == "__main__":
         now_board_tmp, black_count, white_count = get_cb_state(ori_frame, new_x, new_y, roi_length)
         print_board(now_board_tmp)
         now_board_list.append(now_board_tmp)
-        if len(now_board_list) == 3:
+        if len(now_board_list) == 5:
             # print("33333")
             first = now_board_list[0]
             if all(first == board for board in now_board_list):
