@@ -11,6 +11,14 @@ import threading
 from rotate import rotate_image
 os.chdir('/home/tosaka/Desktop/third/')
 
+
+def connect_camera(camera_index=0):
+    """Attempt to connect to the camera and return the capture object."""
+    cap = cv2.VideoCapture(camera_index)
+    if not cap.isOpened():
+        return None
+    return cap
+
 if __name__ == "__main__":
     current_turn = 0
     now_board_count = 0
@@ -27,9 +35,11 @@ if __name__ == "__main__":
     roi_x, roi_y, roi_length = load_roi_settings()
     map1, map2 = mono_correct()
     
-    # 打开摄像头
-    cap = cv2.VideoCapture(0)
-    time.sleep(3) #等待系统图形界面
+    # 打开摄像头，若未连接则定时重试
+    camera_index = 0
+    retry_interval = 2
+    cap = connect_camera(camera_index)
+    time.sleep(3)  # 等待系统图形界面
     
     # 创建用于显示画面和掩膜拼接的窗口
     cv2.namedWindow('frame', cv2.WINDOW_NORMAL)
@@ -49,9 +59,18 @@ if __name__ == "__main__":
     agent_thread.start()
         
     while True:
+        if cap is None or not cap.isOpened():
+            print("摄像头未连接，等待重连中...")
+            time.sleep(retry_interval)
+            cap = connect_camera(camera_index)
+            continue
+
         ret, frame = cap.read()
         if not ret:
-            break
+            print("摄像头读取失败，断开连接。重新连接中...")
+            cap.release()
+            cap = None
+            continue
         time.sleep(0.01)
         frame = cv2.rotate(frame, cv2.ROTATE_180)
         frame = get_roi_frame(roi_x, roi_y, roi_length, frame)
@@ -156,5 +175,6 @@ if __name__ == "__main__":
         fore_board = copy.deepcopy(now_board)
         agent.start_detect = False
         
-    cap.release()
+    if cap:
+        cap.release()
     cv2.destroyAllWindows()
